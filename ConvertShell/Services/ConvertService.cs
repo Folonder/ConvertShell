@@ -1,5 +1,4 @@
 ﻿using ConvertShell.Infrastructure;
-using static ConvertShell.Utils;
 
 namespace ConvertShell.Services;
 
@@ -14,9 +13,9 @@ public class ConvertService : IConvertService
 
     public async Task<byte[]> ToPdf(IFormFile? file)
     {
-        ValidateFile(file, new string[] {".txt"});
-        byte[] fileData = await ReadFile(file);
-        return await _converter.ConvertAsync(StringToBytes(file.FileName), fileData);
+        ValidateFile(file, new string[] { ".txt" });
+        var fileData = await ReadFile(file);
+        return await _converter.ConvertAsync(file.FileName, fileData, "PDF");
     }
 
     private static void ValidateFile(IFormFile? file, string[] fileExtensions)
@@ -26,34 +25,22 @@ public class ConvertService : IConvertService
             throw new ArgumentException("No file uploaded.");
         }
 
-        string fileExtension = Path.GetExtension(file.FileName).ToLower();
+        var fileExtension = Path.GetExtension(file.FileName).ToLower();
 
-        bool anyMatch = false;
-        
-        foreach (var ext in fileExtensions)
-        {
-            if (ext == fileExtension)
-            {
-                anyMatch = true;
-                break;
-            }
-        }
-        
+        var anyMatch = fileExtensions.Any(ext => ext == fileExtension);
+
         if (!anyMatch)
         {
-            throw new ArgumentException("Unsupported file type. Only TXT files are allowed.");
+            throw new ArgumentException(
+                $"Unsupported file type. Only {string.Join(", ", fileExtensions)} files are allowed.");
         }
     }
 
     private static async Task<byte[]> ReadFile(IFormFile? file)
     {
-        using (var memoryStream = new MemoryStream())
-        {
-            await file.CopyToAsync(memoryStream);
-            return memoryStream.ToArray();
-        }
+        using var memoryStream = new MemoryStream();
+        
+        await file.CopyToAsync(memoryStream);
+        return memoryStream.ToArray();
     }
 }
-
-
-

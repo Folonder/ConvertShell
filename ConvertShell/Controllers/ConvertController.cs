@@ -22,7 +22,7 @@ public class ConvertController : ControllerBase
     {
         try
         {
-            byte[] convertedFile = await _converterService.ToPdf(file);
+            var convertedFile = await _converterService.ToPdf(file);
 
             return File(convertedFile, "application/pdf", file.FileName);
         }

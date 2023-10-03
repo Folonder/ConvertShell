@@ -2,5 +2,5 @@
 
 public interface IConverter
 {
-    public Task<byte[]> ConvertAsync(byte[] fileName, byte[] fileData);
+    public Task<byte[]> ConvertAsync(string fileName, byte[] fileData, string outFileExtension);
 }
