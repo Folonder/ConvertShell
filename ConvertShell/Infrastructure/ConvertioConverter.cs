@@ -86,8 +86,7 @@ public class ConvertioConverter : IConverter
             throw new WebException(responseContent);
         }
     }
-
-
+    
     private async Task<string> GetFileStatusAsync()
     {
         const string url = "https://convertio.co/process/get_file_status";

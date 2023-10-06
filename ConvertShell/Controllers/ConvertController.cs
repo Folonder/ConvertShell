@@ -30,10 +30,6 @@ public class ConvertController : ControllerBase
         {
             return BadRequest(e.Message);
         }
-        catch (Exception e)
-        {
-            return StatusCode(500, e.Message);
-        }
     }
 }
 
