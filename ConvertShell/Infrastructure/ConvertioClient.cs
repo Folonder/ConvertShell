@@ -5,13 +5,13 @@ using static ConvertShell.Utils;
 
 namespace ConvertShell.Infrastructure;
 
-public class ConvertioConverter : IConverter
+public class ConvertioClient : IConverter
 {
     private MetaData _metaData;
     private readonly string _uploadMetaDataUrl;
     private readonly string _getFileUrl;
 
-    public ConvertioConverter(IOptions<ConvertioOptions> options)
+    public ConvertioClient(IOptions<ConvertioClientOptions> options)
     {
         var _options = options.Value;
         _uploadMetaDataUrl = _options.UploadMetaDataUrl;
@@ -24,12 +24,13 @@ public class ConvertioConverter : IConverter
         var uploadFileUrl = await UploadMetadataAsync();
         await UploadFileAsync(uploadFileUrl);
 
-        string downloadUrl = String.Empty;
+        var downloadUrl = String.Empty;
         
         for (int i = 0; i < 10; i++)
         {
             await Task.Delay(3000);
             downloadUrl = await TryGetUrl();
+            
             if (!string.IsNullOrEmpty(downloadUrl))
             {
                 break;
@@ -125,9 +126,9 @@ public struct MetaData
 
     public MetaData(string fileName, byte[] fileData, string outFileExtension)
     {
-        fileId = RandomString(32);
-        packId = RandomString(6);
-        sessionId = RandomString(32);
+        fileId = getRandomHexString(32);
+        packId = getRandomHexString(6);
+        sessionId = getRandomHexString(32);
 
         this.fileName = fileName;
         this.fileData = fileData;

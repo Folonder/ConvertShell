@@ -1,8 +1,8 @@
 ﻿namespace ConvertShell.Infrastructure;
 
-public class ConvertioOptions
+public class ConvertioClientOptions
 {
-    public const string Key = "Convertio";
+    public const string Key = "ConvertioClient";
     public string UploadMetaDataUrl { get; set; }
     public string GetFileUrl { get; set; }
 }

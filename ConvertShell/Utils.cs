@@ -16,7 +16,7 @@ public static class Utils
 
     public static byte[] StringToBytes(string content)
     {
-        return Encoding.ASCII.GetBytes(content);
+        return Encoding.UTF8.GetBytes(content);
     }
 
     public static string BytesToString(byte[] content)
@@ -24,7 +24,7 @@ public static class Utils
         return Encoding.UTF8.GetString(content);
     }
     
-    public static string RandomString(int length)
+    public static string getRandomHexString(int length)
     {
         const string chars = "abcdef0123456789";
         return new string(Enumerable.Repeat(chars, length)
