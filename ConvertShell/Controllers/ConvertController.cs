@@ -20,16 +20,8 @@ public class ConvertController : ControllerBase
     [Route("to-pdf")]
     public async Task<IActionResult> ToPdf(IFormFile? file)
     {
-        try
-        {
-            var convertedFile = await _converterService.ToPdf(file);
-
-            return File(convertedFile, "application/pdf", file.FileName);
-        }
-        catch (ArgumentException e)
-        {
-            return BadRequest(e.Message);
-        }
+        var convertedFile = await _converterService.ToPdf(file);
+        return File(convertedFile, "application/pdf", file.FileName);
     }
 }
 

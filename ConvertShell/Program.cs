@@ -1,4 +1,5 @@
 using ConvertShell.Infrastructure;
+using ConvertShell.Middleware;
 using ConvertShell.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -32,6 +33,8 @@ if (app.Environment.IsDevelopment())
         c.RoutePrefix = "swagger";
     });
 }
+
+app.UseMiddleware<ErrorHandlerMiddleware>();
 
 app.UseCors();
 
