@@ -1,6 +1,8 @@
 ﻿using ConvertShell.Attributes;
 using ConvertShell.Services;
 using Microsoft.AspNetCore.Mvc;
+using static ConvertShell.Utils;
+
 namespace ConvertShell.Controllers;
 
 
@@ -23,7 +25,7 @@ public class ConvertController : ControllerBase
     [AllowedExtensions(new string[] {".txt"})]
     public async Task<IActionResult> ToPdf(IFormFile file)
     {
-        var convertedFile = await _converterService.ToPdf(file);
+        var convertedFile = await _converterService.ConvertFile(file.FileName, await ReadFile(file), ".PDF");
         return File(convertedFile, "application/pdf", file.FileName);
     }
 }

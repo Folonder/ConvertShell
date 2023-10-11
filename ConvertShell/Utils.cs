@@ -30,4 +30,12 @@ public static class Utils
         return new string(Enumerable.Repeat(chars, length)
             .Select(s => s[random.Next(s.Length)]).ToArray());
     }
+    
+    public static async Task<byte[]> ReadFile(IFormFile file)
+    {
+        using var memoryStream = new MemoryStream();
+        
+        await file.CopyToAsync(memoryStream);
+        return memoryStream.ToArray();
+    }
 }

@@ -2,6 +2,6 @@
 {
     public interface IConvertService
     {
-        public Task<byte[]> ToPdf(IFormFile? file);
+        public Task<byte[]> ConvertFile(string fileName, byte[] fileData, string outFileExtension);
     }
 }
