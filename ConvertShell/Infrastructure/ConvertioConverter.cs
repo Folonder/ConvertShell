@@ -1,5 +1,6 @@
 ﻿using System.Net;
 using System.Text.Json;
+using Microsoft.Extensions.Options;
 using static ConvertShell.Utils;
 
 namespace ConvertShell.Infrastructure;
@@ -7,6 +8,15 @@ namespace ConvertShell.Infrastructure;
 public class ConvertioConverter : IConverter
 {
     private MetaData _metaData;
+    private readonly string _uploadMetaDataUrl;
+    private readonly string _getFileUrl;
+
+    public ConvertioConverter(IOptions<ConvertioOptions> options)
+    {
+        var _options = options.Value;
+        _uploadMetaDataUrl = _options.UploadMetaDataUrl;
+        _getFileUrl = _options.GetFileUrl;
+    }
 
     public async Task<byte[]> ConvertAsync(string fileName, byte[] fileData, string outFileExtension)
     {
@@ -14,12 +24,16 @@ public class ConvertioConverter : IConverter
         var uploadFileUrl = await UploadMetadataAsync();
         await UploadFileAsync(uploadFileUrl);
 
-        string downloadUrl = "";
+        string downloadUrl = String.Empty;
         
-        for (int i = 0; i < 10 && string.IsNullOrEmpty(downloadUrl); i++)
+        for (int i = 0; i < 10; i++)
         {
             await Task.Delay(3000);
-            downloadUrl = await GetFileStatusAsync();
+            downloadUrl = await TryGetUrl();
+            if (!string.IsNullOrEmpty(downloadUrl))
+            {
+                break;
+            }
         }
         return await DownloadFileAsync(downloadUrl);
     }
@@ -32,8 +46,6 @@ public class ConvertioConverter : IConverter
 
     private async Task<string> UploadMetadataAsync()
     {
-        const string url = "https://convertio.co/process/upload_metadata";
-
         var formContent = new MultipartFormDataContent();
         formContent.Add(new StringContent(_metaData.fileId), "file_id");
         formContent.Add(new StringContent(_metaData.sessionId), "session_id");
@@ -47,7 +59,7 @@ public class ConvertioConverter : IConverter
 
         using var httpClient = new HttpClient();
 
-        var response = await httpClient.PostAsync(url, formContent);
+        var response = await httpClient.PostAsync(_uploadMetaDataUrl, formContent);
         var responseContent = await response.Content.ReadAsStringAsync();
         if (responseContent is "Malformed request" or "No minutes left")
         {
@@ -76,10 +88,8 @@ public class ConvertioConverter : IConverter
         }
     }
     
-    private async Task<string> GetFileStatusAsync()
+    private async Task<string> TryGetUrl()
     {
-        const string url = "https://convertio.co/process/get_file_status";
-
         var data = new FormUrlEncodedContent(new[]
         {
             new KeyValuePair<string, string>("id", _metaData.fileId),
@@ -88,7 +98,7 @@ public class ConvertioConverter : IConverter
 
         using var httpClient = new HttpClient();
         
-        var response = await httpClient.PostAsync(url, data);
+        var response = await httpClient.PostAsync(_getFileUrl, data);
         var dict =
             JsonSerializer.Deserialize<Dictionary<string, Dictionary<string, Dictionary<string, object>>>>(
                 await response.Content.ReadAsStringAsync());
@@ -106,12 +116,12 @@ public class ConvertioConverter : IConverter
 
 public struct MetaData
 {
-    public string fileId;
-    public string packId;
-    public string sessionId;
-    public string fileName;
-    public byte[] fileData;
-    public string outFileExtension;
+    public readonly string fileId;
+    public readonly string packId;
+    public readonly string sessionId;
+    public readonly string fileName;
+    public readonly byte[] fileData;
+    public readonly string outFileExtension;
 
     public MetaData(string fileName, byte[] fileData, string outFileExtension)
     {

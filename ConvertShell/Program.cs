@@ -21,6 +21,7 @@ builder.Services.AddCors(options =>
 
 builder.Services.AddScoped<IConvertService, ConvertService>();
 builder.Services.AddScoped<IConverter, ConvertioConverter>();
+builder.Services.Configure<ConvertioOptions>(builder.Configuration.GetSection(ConvertioOptions.Key));
 
 var app = builder.Build();
 
