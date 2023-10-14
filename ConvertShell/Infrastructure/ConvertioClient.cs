@@ -1,5 +1,6 @@
 ﻿using System.Net;
 using System.Text.Json;
+using ConvertShell.Exceptions;
 using Microsoft.Extensions.Options;
 using static ConvertShell.Utils;
 
@@ -35,7 +36,10 @@ public class ConvertioClient : IConverter
                 break;
             }
         }
-        //TODO: create custom DownloadUrlException
+        if (string.IsNullOrEmpty(downloadUrl))
+        {
+            throw new DownloadUrlException("Can't get download file url");
+        }
         return await DownloadFileAsync(downloadUrl);
     }
 
