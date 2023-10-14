@@ -7,7 +7,6 @@ namespace ConvertShell.Infrastructure;
 
 public class ConvertioClient : IConverter
 {
-    private MetaData _metaData;
     private readonly string _uploadMetaDataUrl;
     private readonly string _getFileUrl;
 
@@ -20,43 +19,38 @@ public class ConvertioClient : IConverter
 
     public async Task<byte[]> ConvertAsync(string fileName, byte[] fileData, string outFileExtension)
     {
-        UpdateMetaData(fileName, fileData, outFileExtension);
-        var uploadFileUrl = await UploadMetadataAsync();
-        await UploadFileAsync(uploadFileUrl);
+        var metaData = new MetaData(fileName, fileData, outFileExtension);
+        var uploadFileUrl = await UploadMetadataAsync(metaData);
+        await UploadFileAsync(uploadFileUrl, metaData);
 
         var downloadUrl = String.Empty;
         
         for (int i = 0; i < 10; i++)
         {
             await Task.Delay(3000);
-            downloadUrl = await TryGetUrl();
+            downloadUrl = await TryGetUrl(metaData);
             
             if (!string.IsNullOrEmpty(downloadUrl))
             {
                 break;
             }
         }
+        //TODO: create custom DownloadUrlException
         return await DownloadFileAsync(downloadUrl);
     }
 
-
-    private void UpdateMetaData(string fileName, byte[] fileData, string outFileExtension)
-    {
-        _metaData = new MetaData(fileName, fileData, outFileExtension);
-    }
-
-    private async Task<string> UploadMetadataAsync()
+    private async Task<string> UploadMetadataAsync(MetaData metaData)
     {
         var formContent = new MultipartFormDataContent();
-        formContent.Add(new StringContent(_metaData.fileId), "file_id");
-        formContent.Add(new StringContent(_metaData.sessionId), "session_id");
-        formContent.Add(new StringContent(_metaData.fileName), "user_fn");
-        formContent.Add(new StringContent(BytesToString(EncryptMd5(StringToBytes(_metaData.fileName)))),
+        formContent.Add(new StringContent(metaData.fileId), "file_id");
+        formContent.Add(new StringContent(metaData.sessionId), "session_id");
+        formContent.Add(new StringContent(metaData.fileName), "user_fn");
+        formContent.Add(new StringContent(BytesToString(EncryptMd5(StringToBytes(metaData.fileName)))),
             "user_fn_hash");
-        formContent.Add(new StringContent($"{_metaData.fileData.Length}"), "file_size");
-        formContent.Add(new StringContent(BytesToString(EncryptMd5(_metaData.fileData))), "file_hash");
-        formContent.Add(new StringContent(_metaData.outFileExtension), "file_out_format");
-        formContent.Add(new StringContent(_metaData.packId), "pack_id");
+        formContent.Add(new StringContent($"{metaData.fileData.Length}"), "file_size");
+        formContent.Add(new StringContent(BytesToString(EncryptMd5(metaData.fileData))), "file_hash");
+        formContent.Add(new StringContent(metaData.outFileExtension), "file_out_format");
+        formContent.Add(new StringContent(metaData.packId), "pack_id");
 
         using var httpClient = new HttpClient();
 
@@ -70,14 +64,14 @@ public class ConvertioClient : IConverter
         return responseContent;
     }
 
-    private async Task UploadFileAsync(string url)
+    private async Task UploadFileAsync(string url, MetaData metaData)
     {
-        var fileContent = new ByteArrayContent(_metaData.fileData);
+        var fileContent = new ByteArrayContent(metaData.fileData);
         fileContent.Headers.Add("Content-Type", "text/plain");
 
         var content = new MultipartFormDataContent();
-        content.Add(new StringContent(_metaData.fileId), "file_id");
-        content.Add(fileContent, "file", _metaData.fileName);
+        content.Add(new StringContent(metaData.fileId), "file_id");
+        content.Add(fileContent, "file", metaData.fileName);
 
         using var httpClient = new HttpClient();
 
@@ -89,11 +83,11 @@ public class ConvertioClient : IConverter
         }
     }
     
-    private async Task<string> TryGetUrl()
+    private async Task<string> TryGetUrl(MetaData metaData)
     {
         var data = new FormUrlEncodedContent(new[]
         {
-            new KeyValuePair<string, string>("id", _metaData.fileId),
+            new KeyValuePair<string, string>("id", metaData.fileId),
             new KeyValuePair<string, string>("type", "convert")
         });
 
@@ -103,7 +97,7 @@ public class ConvertioClient : IConverter
         var dict =
             JsonSerializer.Deserialize<Dictionary<string, Dictionary<string, Dictionary<string, object>>>>(
                 await response.Content.ReadAsStringAsync());
-        return dict["convert"][_metaData.fileId]["out_url"].ToString();
+        return dict["convert"][metaData.fileId]["out_url"].ToString();
     }
 
     private async Task<byte[]> DownloadFileAsync(string url)
@@ -111,27 +105,5 @@ public class ConvertioClient : IConverter
         using var httpClient = new HttpClient();
         var response = await httpClient.GetAsync(url);
         return await response.Content.ReadAsByteArrayAsync();
-    }
-}
-
-
-public struct MetaData
-{
-    public readonly string fileId;
-    public readonly string packId;
-    public readonly string sessionId;
-    public readonly string fileName;
-    public readonly byte[] fileData;
-    public readonly string outFileExtension;
-
-    public MetaData(string fileName, byte[] fileData, string outFileExtension)
-    {
-        fileId = getRandomHexString(32);
-        packId = getRandomHexString(6);
-        sessionId = getRandomHexString(32);
-
-        this.fileName = fileName;
-        this.fileData = fileData;
-        this.outFileExtension = outFileExtension;
     }
 }
