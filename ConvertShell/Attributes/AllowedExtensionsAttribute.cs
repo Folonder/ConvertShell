@@ -1,31 +1,31 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Filters;
 
 namespace ConvertShell.Attributes;
 
-public class AllowedExtensionsAttribute : ValidationAttribute
+public class AllowedExtensionsAttribute : ActionFilterAttribute
 {
     private readonly string[] _extensions;
     public AllowedExtensionsAttribute(string[] extensions)
     {
         _extensions = extensions;
     }
-
-    protected override ValidationResult? IsValid(object? value, ValidationContext validationContext)
+    
+    public override void OnActionExecuting(ActionExecutingContext context)
     {
-        if (value is IFormFile file)
+        if (context.ActionArguments.TryGetValue("file", out var parameterValue) && parameterValue is IFormFile file)
         {
             var extension = Path.GetExtension(file.FileName);
-            if (!_extensions.Contains(extension?.ToLower()))
+            if (!_extensions.Contains(extension.ToLower()))
             {
-                return new ValidationResult(GetErrorMessage());
+                context.Result = new BadRequestObjectResult(GetErrorMessage());
             }
-            return ValidationResult.Success;
         }
-        return new ValidationResult("File can't be null");
+        base.OnActionExecuting(context);
     }
 
-    public string GetErrorMessage()
+    private string GetErrorMessage()
     {
-        return $"This file extension is not allowed!";
+        return $"File extension must be one of these: {string.Join(", ", _extensions)}";
     }
 }

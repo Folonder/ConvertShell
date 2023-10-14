@@ -21,11 +21,11 @@ public class ConvertController : ControllerBase
 
     [HttpPost]
     [Route("to-pdf")]
-    [FileSizeRange(1, 100 * 1024 * 1024)]
     [AllowedExtensions(new string[] {".txt"})]
+    [FileSizeRange(1, 100 * 1024 * 1024)]
     public async Task<IActionResult> ToPdf(IFormFile file)
     {
-        var convertedFile = await _converterService.ConvertFile(file.FileName, await ReadFile(file), ".PDF");
+        var convertedFile = await _converterService.ConvertFile(file.FileName, await ReadFile(file), "PDF");
         return File(convertedFile, "application/pdf", file.FileName);
     }
 }

@@ -1,8 +1,10 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Filters;
 
 namespace ConvertShell.Attributes;
 
-public class FileSizeRangeAttribute : ValidationAttribute
+public class FileSizeRangeAttribute : ActionFilterAttribute
 {
     private readonly int _minFileSize;
     private readonly int _maxFileSize;
@@ -11,21 +13,20 @@ public class FileSizeRangeAttribute : ValidationAttribute
         _minFileSize = minFileSize;
         _maxFileSize = maxFileSize;
     }
-
-    protected override ValidationResult IsValid(object? value, ValidationContext validationContext)
+    
+    public override void OnActionExecuting(ActionExecutingContext context)
     {
-        if (value is IFormFile file)
+        if (context.ActionArguments.TryGetValue("file", out var parameterValue) && parameterValue is IFormFile file)
         {
             if (file.Length > _maxFileSize || file.Length < _minFileSize)
             {
-                return new ValidationResult(GetErrorMessage());
+                context.Result = new BadRequestObjectResult(GetErrorMessage());
             }
-            return ValidationResult.Success;
         }
-        return new ValidationResult("File can't be null");
+        base.OnActionExecuting(context);
     }
 
-    public string GetErrorMessage()
+    private string GetErrorMessage()
     {
         return $"Allowed file size range is [{_minFileSize}, {_maxFileSize}] bytes.";
     }
