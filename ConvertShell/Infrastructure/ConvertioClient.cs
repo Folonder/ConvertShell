@@ -1,48 +1,35 @@
 ﻿using System.Net;
 using System.Text.Json;
-using ConvertShell.Exceptions;
 using Microsoft.Extensions.Options;
 using static ConvertShell.Utils;
-
+ 
 namespace ConvertShell.Infrastructure;
-
+ 
 public class ConvertioClient : IConverter
 {
     private readonly string _uploadMetaDataUrl;
     private readonly string _getFileUrl;
-
+ 
     public ConvertioClient(IOptions<ConvertioClientOptions> options)
     {
         var _options = options.Value;
         _uploadMetaDataUrl = _options.UploadMetaDataUrl;
         _getFileUrl = _options.GetFileUrl;
     }
-
+ 
     public async Task<byte[]> ConvertAsync(string fileName, byte[] fileData, string outFileExtension)
     {
         var metaData = new MetaData(fileName, fileData, outFileExtension);
-        var uploadFileUrl = await UploadMetadataAsync(metaData);
-        await UploadFileAsync(uploadFileUrl, metaData);
-
+        // var uploadFileUrl = await UploadMetadataAsync(metaData);
+        // await UploadFileAsync(uploadFileUrl, metaData);
+ 
         var downloadUrl = String.Empty;
-        
-        for (int i = 0; i < 10; i++)
-        {
-            await Task.Delay(3000);
-            downloadUrl = await TryGetUrl(metaData);
-            
-            if (!string.IsNullOrEmpty(downloadUrl))
-            {
-                break;
-            }
-        }
-        if (string.IsNullOrEmpty(downloadUrl))
-        {
-            throw new DownloadUrlException("Can't get download file url");
-        }
+ 
+        downloadUrl = await GetDownloadUrl(metaData);
+ 
         return await DownloadFileAsync(downloadUrl);
     }
-
+ 
     private async Task<string> UploadMetadataAsync(MetaData metaData)
     {
         var formContent = new MultipartFormDataContent();
@@ -55,30 +42,30 @@ public class ConvertioClient : IConverter
         formContent.Add(new StringContent(BytesToString(EncryptMd5(metaData.fileData))), "file_hash");
         formContent.Add(new StringContent(metaData.outFileExtension), "file_out_format");
         formContent.Add(new StringContent(metaData.packId), "pack_id");
-
+ 
         using var httpClient = new HttpClient();
-
+ 
         var response = await httpClient.PostAsync(_uploadMetaDataUrl, formContent);
         var responseContent = await response.Content.ReadAsStringAsync();
         if (responseContent is "Malformed request" or "No minutes left")
         {
             throw new WebException(responseContent);
         }
-
+ 
         return responseContent;
     }
-
+ 
     private async Task UploadFileAsync(string url, MetaData metaData)
     {
         var fileContent = new ByteArrayContent(metaData.fileData);
         fileContent.Headers.Add("Content-Type", "text/plain");
-
+ 
         var content = new MultipartFormDataContent();
         content.Add(new StringContent(metaData.fileId), "file_id");
         content.Add(fileContent, "file", metaData.fileName);
-
+ 
         using var httpClient = new HttpClient();
-
+ 
         var response = await httpClient.PostAsync(url, content);
         var responseContent = await response.Content.ReadAsStringAsync();
         if (responseContent != "OK")
@@ -86,24 +73,42 @@ public class ConvertioClient : IConverter
             throw new WebException(responseContent);
         }
     }
-    
-    private async Task<string> TryGetUrl(MetaData metaData)
+ 
+    private async Task<string> GetDownloadUrl(MetaData metaData)
     {
         var data = new FormUrlEncodedContent(new[]
         {
             new KeyValuePair<string, string>("id", metaData.fileId),
             new KeyValuePair<string, string>("type", "convert")
         });
-
+ 
         using var httpClient = new HttpClient();
-        
-        var response = await httpClient.PostAsync(_getFileUrl, data);
-        var dict =
-            JsonSerializer.Deserialize<Dictionary<string, Dictionary<string, Dictionary<string, object>>>>(
-                await response.Content.ReadAsStringAsync());
-        return dict["convert"][metaData.fileId]["out_url"].ToString();
+ 
+        var retryingHttpClient = new RetryingHttpClient(new ConvertRetryParams(metaData.fileData.Length, metaData.outFileExtension));
+ 
+        string result = await retryingHttpClient.ExecuteWithRetry(async () => await TryGetDownloadUrl(metaData, data, httpClient));
+ 
+        return result;
     }
 
+    private async Task<string> TryGetDownloadUrl(MetaData metaData, FormUrlEncodedContent data, HttpClient httpClient)
+    {
+        var response = await httpClient.PostAsync(_getFileUrl, data);
+ 
+        if (response.IsSuccessStatusCode)
+        {
+            var dict =
+                JsonSerializer.Deserialize<Dictionary<string, Dictionary<string, Dictionary<string, object>>>>(
+                    await response.Content.ReadAsStringAsync());
+            var downloadUrl = dict["convert"][metaData.fileId]["out_url"].ToString();
+            if (!string.IsNullOrEmpty(downloadUrl))
+            {
+                return downloadUrl;
+            }
+        }
+        throw new Exception($"Can't get download url");
+    }
+ 
     private async Task<byte[]> DownloadFileAsync(string url)
     {
         using var httpClient = new HttpClient();
