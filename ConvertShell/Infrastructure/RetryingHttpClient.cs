@@ -5,14 +5,12 @@ namespace ConvertShell.Infrastructure;
  
 public class RetryingHttpClient
 {
-    private readonly HttpClient _httpClient;
     private readonly AsyncRetryPolicy _retryPolicy;
  
     public RetryingHttpClient(RetryParams retryParams)
     {
         var maxRetries = retryParams.MaxTries;
         var retryInterval = retryParams.RetryInterval;
-        _httpClient = new HttpClient();
         _retryPolicy = Policy
             .Handle<Exception>() 
             .WaitAndRetryAsync(maxRetries, retryAttempt => retryInterval, (exception, timeSpan, retryCount, context) =>
@@ -21,7 +19,7 @@ public class RetryingHttpClient
             });
     }
  
-    public async Task<string> ExecuteWithRetry(Func<Task<string>> action)
+    public async Task<string> ExecuteWithRetryIfResultEmpty(Func<Task<string>> action)
     {
         return await _retryPolicy.ExecuteAsync(async () =>
         {

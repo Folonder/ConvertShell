@@ -23,6 +23,9 @@ builder.Services.AddScoped<IConvertService, ConvertService>();
 builder.Services.AddScoped<IConverter, ConvertioClient>();
 builder.Services.Configure<ConvertioClientOptions>(builder.Configuration.GetSection(ConvertioClientOptions.Key));
 
+
+builder.Services.AddHttpClient();
+
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())

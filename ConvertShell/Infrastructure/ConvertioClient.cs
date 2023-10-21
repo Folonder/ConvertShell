@@ -7,25 +7,26 @@ namespace ConvertShell.Infrastructure;
  
 public class ConvertioClient : IConverter
 {
+    private readonly IHttpClientFactory _httpClientFactory;
+    
     private readonly string _uploadMetaDataUrl;
     private readonly string _getFileUrl;
  
-    public ConvertioClient(IOptions<ConvertioClientOptions> options)
+    public ConvertioClient(IOptions<ConvertioClientOptions> options, IHttpClientFactory httpClientFactory)
     {
         var _options = options.Value;
         _uploadMetaDataUrl = _options.UploadMetaDataUrl;
         _getFileUrl = _options.GetFileUrl;
+        _httpClientFactory = httpClientFactory;
     }
  
     public async Task<byte[]> ConvertAsync(string fileName, byte[] fileData, string outFileExtension)
     {
         var metaData = new MetaData(fileName, fileData, outFileExtension);
-        // var uploadFileUrl = await UploadMetadataAsync(metaData);
-        // await UploadFileAsync(uploadFileUrl, metaData);
- 
-        var downloadUrl = String.Empty;
- 
-        downloadUrl = await GetDownloadUrl(metaData);
+        var uploadFileUrl = await UploadMetadataAsync(metaData);
+        await UploadFileAsync(uploadFileUrl, metaData);
+
+        var downloadUrl = await GetDownloadUrl(metaData);
  
         return await DownloadFileAsync(downloadUrl);
     }
@@ -43,7 +44,7 @@ public class ConvertioClient : IConverter
         formContent.Add(new StringContent(metaData.outFileExtension), "file_out_format");
         formContent.Add(new StringContent(metaData.packId), "pack_id");
  
-        using var httpClient = new HttpClient();
+        using var httpClient = _httpClientFactory.CreateClient();
  
         var response = await httpClient.PostAsync(_uploadMetaDataUrl, formContent);
         var responseContent = await response.Content.ReadAsStringAsync();
@@ -64,7 +65,7 @@ public class ConvertioClient : IConverter
         content.Add(new StringContent(metaData.fileId), "file_id");
         content.Add(fileContent, "file", metaData.fileName);
  
-        using var httpClient = new HttpClient();
+        using var httpClient = _httpClientFactory.CreateClient();
  
         var response = await httpClient.PostAsync(url, content);
         var responseContent = await response.Content.ReadAsStringAsync();
@@ -82,13 +83,12 @@ public class ConvertioClient : IConverter
             new KeyValuePair<string, string>("type", "convert")
         });
  
-        using var httpClient = new HttpClient();
+        using var httpClient = _httpClientFactory.CreateClient();
  
         var retryingHttpClient = new RetryingHttpClient(new ConvertRetryParams(metaData.fileData.Length, metaData.outFileExtension));
  
-        string result = await retryingHttpClient.ExecuteWithRetry(async () => await TryGetDownloadUrl(metaData, data, httpClient));
- 
-        return result;
+        return await retryingHttpClient.ExecuteWithRetryIfResultEmpty(async () => await TryGetDownloadUrl(metaData, data, httpClient));
+        
     }
 
     private async Task<string> TryGetDownloadUrl(MetaData metaData, FormUrlEncodedContent data, HttpClient httpClient)
@@ -111,7 +111,7 @@ public class ConvertioClient : IConverter
  
     private async Task<byte[]> DownloadFileAsync(string url)
     {
-        using var httpClient = new HttpClient();
+        using var httpClient = _httpClientFactory.CreateClient();
         var response = await httpClient.GetAsync(url);
         return await response.Content.ReadAsByteArrayAsync();
     }
