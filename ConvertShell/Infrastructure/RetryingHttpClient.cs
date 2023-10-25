@@ -1,19 +1,18 @@
-﻿using Polly;
+﻿using ConvertShell.Exceptions;
+using Polly;
 using Polly.Retry;
  
 namespace ConvertShell.Infrastructure;
  
 public class RetryingHttpClient
 {
-    private readonly AsyncRetryPolicy _retryPolicy;
+    public readonly AsyncRetryPolicy _retryPolicy;
  
     public RetryingHttpClient(RetryParams retryParams)
     {
-        var maxRetries = retryParams.MaxTries;
-        var retryInterval = retryParams.RetryInterval;
         _retryPolicy = Policy
-            .Handle<Exception>() 
-            .WaitAndRetryAsync(maxRetries, retryAttempt => retryInterval, (exception, timeSpan, retryCount, context) =>
+            .Handle<DownloadUrlException>() 
+            .WaitAndRetryAsync(retryParams.MaxTries, retryAttempt => retryParams.RetryInterval, (exception, timeSpan, retryCount, context) =>
             {
                 Console.WriteLine($"Retry #{retryCount}: {exception.Message}, retrying in {timeSpan.TotalSeconds} seconds");
             });
@@ -30,7 +29,7 @@ public class RetryingHttpClient
                 return result;
             }
  
-            throw new Exception("Empty response, retrying...");
+            throw new DownloadUrlException("Empty response, retrying...");
         });
     }
 }
