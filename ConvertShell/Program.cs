@@ -38,7 +38,7 @@ if (app.Environment.IsDevelopment())
     });
 }
 
-app.UseMiddleware<ErrorHandlerMiddleware>();
+app.UseMiddleware<ExceptionHandlerMiddleware>();
 
 app.UseCors();
 

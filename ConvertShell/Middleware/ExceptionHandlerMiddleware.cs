@@ -3,11 +3,11 @@ using System.Text.Json;
 
 namespace ConvertShell.Middleware;
 
-public class ErrorHandlerMiddleware
+public class ExceptionHandlerMiddleware
 {
     private readonly RequestDelegate _next;
 
-    public ErrorHandlerMiddleware(RequestDelegate next)
+    public ExceptionHandlerMiddleware(RequestDelegate next)
     {
         _next = next;
     }
