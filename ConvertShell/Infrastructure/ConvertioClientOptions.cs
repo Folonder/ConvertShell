@@ -3,6 +3,6 @@
 public class ConvertioClientOptions
 {
     public const string Key = "ConvertioClient";
-    public string UploadMetaDataUrl { get; set; }
-    public string GetFileUrl { get; set; }
+    public virtual string UploadMetaDataUrl { get; set; }
+    public virtual string GetFileUrl { get; set; }
 }

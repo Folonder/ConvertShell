@@ -19,6 +19,7 @@ builder.Services.AddCors(options =>
     });
 });
 
+builder.Services.AddScoped<MetaData, MetaData>();
 builder.Services.AddScoped<IConvertService, ConvertService>();
 builder.Services.AddScoped<IConverter, ConvertioClient>();
 builder.Services.Configure<ConvertioClientOptions>(builder.Configuration.GetSection(ConvertioClientOptions.Key));
