@@ -11,9 +11,9 @@ public class ConvertioClientBuilderTests
     public void UploadMetaDataContent_Test()
     {
         // Arrange
-        var metaData = new MetaData().Create("fileName",Encoding.UTF8.GetBytes("fileData"), "outFileExtension");
+        var metaData = MetaData.Create("fileName",Encoding.UTF8.GetBytes("fileData"), "outFileExtension");
 
-        var contentBuilder = new ConvertioContentBuilder();
+        var contentBuilder = new ConvertioContent();
 
         // Act
         var result = contentBuilder.UploadMetaDataContent(metaData);
@@ -37,9 +37,9 @@ public class ConvertioClientBuilderTests
     public void UploadFileContent_Test()
     {
         // Arrange
-        var metaData = new MetaData().Create("fileName",Encoding.UTF8.GetBytes("fileData"), "outFileExtension");
+        var metaData = MetaData.Create("fileName",Encoding.UTF8.GetBytes("fileData"), "outFileExtension");
 
-        var contentBuilder = new ConvertioContentBuilder();
+        var contentBuilder = new ConvertioContent();
 
         // Act
         var result = contentBuilder.UploadFileContent(metaData);
@@ -57,8 +57,8 @@ public class ConvertioClientBuilderTests
     public void GetDownloadUrlContent_Test()
     {
         // Arrange
-        var metaData = new MetaData().Create("fileName",Encoding.UTF8.GetBytes("fileData"), "outFileExtension");
-        var contentBuilder = new ConvertioContentBuilder();
+        var metaData = MetaData.Create("fileName",Encoding.UTF8.GetBytes("fileData"), "outFileExtension");
+        var contentBuilder = new ConvertioContent();
 
         // Act
         var result = contentBuilder.GetDownloadUrlContent(metaData);

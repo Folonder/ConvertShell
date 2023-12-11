@@ -2,11 +2,11 @@
 
 namespace ConvertShell.Infrastructure;
 
-public class ConvertioContentBuilder
+public class ConvertioContent
 {
     public MetaData MetaData(string fileName, byte[] fileData, string outFileExtension)
     {
-        return new MetaData().Create(fileName, fileData, outFileExtension);
+        return Infrastructure.MetaData.Create(fileName, fileData, outFileExtension);
     }
 
     public MultipartFormDataContent UploadMetaDataContent(MetaData metaData)

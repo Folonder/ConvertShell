@@ -11,7 +11,7 @@ public class MetaData
     public byte[] FileData {get; private set;}
     public string OutFileExtension {get; private set;}
 
-    public virtual MetaData Create(string fileName, byte[] fileData, string outFileExtension)
+    public static MetaData Create(string fileName, byte[] fileData, string outFileExtension)
     {
         var metaData  = new MetaData
         {
