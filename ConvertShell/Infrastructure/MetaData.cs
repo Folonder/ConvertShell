@@ -4,21 +4,24 @@ namespace ConvertShell.Infrastructure;
 
 public class MetaData
 {
-    public string FileId {get;}
-    public string PackId {get;}
-    public string SessionId {get;}
-    public string FileName {get;}
-    public byte[] FileData {get;}
-    public string OutFileExtension {get;}
+    public string FileId {get; private set; }
+    public string PackId {get; private set;}
+    public string SessionId {get; private set;}
+    public string FileName {get; private set;}
+    public byte[] FileData {get; private set;}
+    public string OutFileExtension {get; private set;}
 
-    public MetaData(string fileName, byte[] fileData, string outFileExtension)
-    { 
-        FileId = getRandomHexString(32);
-        PackId = getRandomHexString(6);
-        SessionId = getRandomHexString(32);
-
-        FileName = fileName;
-        FileData = fileData;
-        OutFileExtension = outFileExtension;
+    public static MetaData Create(string fileName, byte[] fileData, string outFileExtension)
+    {
+        var metaData  = new MetaData
+        {
+            FileId = getRandomHexString(32),
+            PackId = getRandomHexString(6),
+            SessionId = getRandomHexString(32),
+            FileName = fileName,
+            FileData = fileData,
+            OutFileExtension = outFileExtension
+        };
+        return metaData;
     }
 }

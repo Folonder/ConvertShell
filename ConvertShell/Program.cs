@@ -19,9 +19,12 @@ builder.Services.AddCors(options =>
     });
 });
 
+builder.Services.AddScoped<MetaData, MetaData>();
+builder.Services.AddScoped<ConvertioClient, ConvertioClient>();
+builder.Services.AddScoped<ConvertioContent, ConvertioContent>();
 builder.Services.AddScoped<IConvertService, ConvertService>();
-builder.Services.AddScoped<IConverter, ConvertioClient>();
-builder.Services.Configure<ConvertioClientOptions>(builder.Configuration.GetSection(ConvertioClientOptions.Key));
+builder.Services.AddScoped<IConverter, ConvertioConverter>();
+builder.Services.Configure<ConvertioConverterOptions>(builder.Configuration.GetSection(ConvertioConverterOptions.Key));
 
 
 builder.Services.AddHttpClient();

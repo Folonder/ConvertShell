@@ -4,11 +4,11 @@ using Polly.Retry;
  
 namespace ConvertShell.Infrastructure;
  
-public class RetryingHttpClient
+public class RetryingClient
 {
     public readonly AsyncRetryPolicy _retryPolicy;
  
-    public RetryingHttpClient(RetryParams retryParams)
+    public RetryingClient(RetryParams retryParams)
     {
         _retryPolicy = Policy
             .Handle<DownloadUrlException>() 
