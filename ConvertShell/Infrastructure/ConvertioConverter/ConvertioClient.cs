@@ -18,7 +18,6 @@ public class ConvertioClient
     public async Task<string> UploadMetaDataAsync(string url, MultipartFormDataContent content)
     {
         var httpClient = _httpClientFactory.CreateClient();
-        
         var response = await httpClient.PostAsync(url, content);
         var responseContent = await response.Content.ReadAsStringAsync();
         if (responseContent is "Malformed request" or "No minutes left")
@@ -31,7 +30,6 @@ public class ConvertioClient
     public async Task UploadFileAsync(string url, MultipartFormDataContent content)
     {
         var httpClient = _httpClientFactory.CreateClient();
- 
         var response = await httpClient.PostAsync(url, content);
         var responseContent = await response.Content.ReadAsStringAsync();
         if (responseContent != "OK")
@@ -65,7 +63,7 @@ public class ConvertioClient
                 return downloadUrl;
             }
         }
-        throw new DownloadUrlException($"Can't get download url");
+        throw new DownloadUrlException($"Can not get download url");
     }
  
     public async Task<byte[]> DownloadFileAsync(string url)

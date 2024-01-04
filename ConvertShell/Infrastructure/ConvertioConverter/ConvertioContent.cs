@@ -4,7 +4,7 @@ namespace ConvertShell.Infrastructure;
 
 public class ConvertioContent
 {
-    public MetaData MetaData(string fileName, byte[] fileData, string outFileExtension)
+    public virtual MetaData MetaData(string fileName, byte[] fileData, string outFileExtension)
     {
         return Infrastructure.MetaData.Create(fileName, fileData, outFileExtension);
     }
