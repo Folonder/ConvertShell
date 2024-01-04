@@ -1,5 +1,6 @@
 ﻿using System.Net;
 using System.Text.Json;
+using ConvertShell.Exceptions;
 
 namespace ConvertShell.Middleware;
 
@@ -22,13 +23,15 @@ public class ExceptionHandlerMiddleware
         {
             var response = context.Response;
             response.ContentType = "application/json";
-
             switch(error)
             {
                 case ArgumentException e:
                     response.StatusCode = (int)HttpStatusCode.BadRequest;
                     break;
                 case WebException e:
+                    response.StatusCode = (int)HttpStatusCode.BadRequest;
+                    break;
+                case DownloadUrlException e:
                     response.StatusCode = (int)HttpStatusCode.BadRequest;
                     break;
                 case KeyNotFoundException e:
@@ -38,7 +41,6 @@ public class ExceptionHandlerMiddleware
                     response.StatusCode = (int)HttpStatusCode.InternalServerError;
                     break;
             }
-
             var result = JsonSerializer.Serialize(new { message = error?.Message });
             await response.WriteAsync(result);
         }
