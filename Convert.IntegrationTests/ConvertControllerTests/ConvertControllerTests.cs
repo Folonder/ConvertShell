@@ -12,87 +12,6 @@ public class ConvertControllerTests : TestBase
     {
     }
     
-    private string GetFilePath(string fileName)
-    {
-        return Path.GetFullPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @"..\..\.."))
-               + @"\ConvertControllerTests\TestFiles\" + fileName;
-    }
-
-    private MultipartFormDataContent GetContentFromTxtFile(Stream content, string fileName)
-    {
-        var multipartFormContent = new MultipartFormDataContent();
-
-        var fileStreamContent = new StreamContent(content);
-
-        fileStreamContent.Headers.ContentType = new MediaTypeHeaderValue("text/plain");
-
-        multipartFormContent.Add(fileStreamContent, name: "file", fileName: fileName);
-
-        return multipartFormContent;
-    }
-
-    private string FileStatusDoneJson(string fileId)
-    {
-        return $$"""
-                  {
-                    "upload": {
-                      "{{fileId}}": {
-                        "done": true,
-                        "error": ""
-                      }
-                    },
-                    "convert": {
-                      "{{fileId}}": {
-                        "done": true,
-                        "error": "",
-                        "out_url": "{{_application.BaseAddress}}/process/download_url",
-                        "out_size": 73221,
-                        "credits": 0,
-                        "percent": 0
-                      }
-                    }
-                  }
-                 """;
-    }
-
-    private string FileStatusUndoneJson(string fileId)
-    {
-        return $$"""
-                    {
-                      "upload": {
-                        "{{fileId}}": {
-                          "done": true,
-                          "error": ""
-                        }
-                      },
-                      "convert": {
-                        "{{fileId}}": {
-                          "done": false,
-                          "error": "",
-                          "out_url": "",
-                          "out_size": 0,
-                          "credits": 0,
-                          "percent": 0
-                        }
-                      }
-                    }
-                 """;
-    }
-    
-    protected override void AddCustomServicesConfiguration(IServiceCollection services)
-    {
-        services.Configure<ConvertioConverterOptions>(options =>
-        {
-            options.UploadMetaDataUrl = $"{_application.BaseAddress}/process/upload_metadata";
-            options.GetFileUrl = $"{_application.BaseAddress}/process/get_file_status";
-        });
-        
-        var convertioContent = new Mock<ConvertioContent>();
-        convertioContent.Setup(content => content.MetaData(_metaData.FileName, It.IsAny<byte[]>(), _metaData.OutFileExtension))
-            .Returns(_metaData);
-        services.AddScoped<ConvertioContent>(_ => convertioContent.Object);
-    }
-    
     [Fact]
     public async Task FullTest()
     {
@@ -382,5 +301,86 @@ public class ConvertControllerTests : TestBase
         Assert.Equal(await File.ReadAllBytesAsync(GetFilePath("happy.pdf")), await result.Content.ReadAsByteArrayAsync());
 
         #endregion 
+    }
+    
+    protected override void AddCustomServicesConfiguration(IServiceCollection services)
+    {
+        services.Configure<ConvertioConverterOptions>(options =>
+        {
+            options.UploadMetaDataUrl = $"{_application.BaseAddress}/process/upload_metadata";
+            options.GetFileUrl = $"{_application.BaseAddress}/process/get_file_status";
+        });
+        
+        var convertioContent = new Mock<ConvertioContent>();
+        convertioContent.Setup(content => content.MetaData(_metaData.FileName, It.IsAny<byte[]>(), _metaData.OutFileExtension))
+            .Returns(_metaData);
+        services.AddScoped<ConvertioContent>(_ => convertioContent.Object);
+    }
+    
+    private string GetFilePath(string fileName)
+    {
+        return Path.GetFullPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @"..\..\.."))
+               + @"\ConvertControllerTests\TestFiles\" + fileName;
+    }
+
+    private MultipartFormDataContent GetContentFromTxtFile(Stream content, string fileName)
+    {
+        var multipartFormContent = new MultipartFormDataContent();
+
+        var fileStreamContent = new StreamContent(content);
+
+        fileStreamContent.Headers.ContentType = new MediaTypeHeaderValue("text/plain");
+
+        multipartFormContent.Add(fileStreamContent, name: "file", fileName: fileName);
+
+        return multipartFormContent;
+    }
+
+    private string FileStatusDoneJson(string fileId)
+    {
+        return $$"""
+                  {
+                    "upload": {
+                      "{{fileId}}": {
+                        "done": true,
+                        "error": ""
+                      }
+                    },
+                    "convert": {
+                      "{{fileId}}": {
+                        "done": true,
+                        "error": "",
+                        "out_url": "{{_application.BaseAddress}}/process/download_url",
+                        "out_size": 73221,
+                        "credits": 0,
+                        "percent": 0
+                      }
+                    }
+                  }
+                 """;
+    }
+
+    private string FileStatusUndoneJson(string fileId)
+    {
+        return $$"""
+                    {
+                      "upload": {
+                        "{{fileId}}": {
+                          "done": true,
+                          "error": ""
+                        }
+                      },
+                      "convert": {
+                        "{{fileId}}": {
+                          "done": false,
+                          "error": "",
+                          "out_url": "",
+                          "out_size": 0,
+                          "credits": 0,
+                          "percent": 0
+                        }
+                      }
+                    }
+                 """;
     }
 }
