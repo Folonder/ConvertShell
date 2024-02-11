@@ -1,9 +1,9 @@
-﻿using static ConvertShell.Utils;
-
-namespace ConvertShell.Infrastructure;
+﻿namespace ConvertShell.Infrastructure;
 
 public class MetaData
 {
+    private static readonly Random Random = new Random();
+    
     public string FileId {get; private set; }
     public string PackId {get; private set;}
     public string SessionId {get; private set;}
@@ -15,13 +15,20 @@ public class MetaData
     {
         var metaData  = new MetaData
         {
-            FileId = getRandomHexString(32),
-            PackId = getRandomHexString(6),
-            SessionId = getRandomHexString(32),
+            FileId = GetRandomHexString(32),
+            PackId = GetRandomHexString(6),
+            SessionId = GetRandomHexString(32),
             FileName = fileName,
             FileData = fileData,
             OutFileExtension = outFileExtension
         };
         return metaData;
+    }
+    
+    private static string GetRandomHexString(int length)
+    {
+        const string chars = "abcdef0123456789";
+        return new string(Enumerable.Repeat(chars, length)
+            .Select(s => s[Random.Next(s.Length)]).ToArray());
     }
 }
