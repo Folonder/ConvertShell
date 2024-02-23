@@ -318,8 +318,7 @@ public class ConvertControllerTests : TestBase
     
     private string GetFilePath(string fileName)
     {
-        return Path.GetFullPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @"..\..\.."))
-               + @"\ConvertControllerTests\TestFiles\" + fileName;
+        return Path.GetFullPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "..", "..", "..", "ConvertControllerTests", "TestFiles", fileName));
     }
 
     private MultipartFormDataContent GetContentFromTxtFile(Stream content, string fileName)
