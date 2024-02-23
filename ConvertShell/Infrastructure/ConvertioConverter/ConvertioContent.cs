@@ -1,4 +1,4 @@
-﻿using static ConvertShell.Infrastructure.ConvertioContentUtils;
+﻿using ConvertShell.Extensions;
 
 namespace ConvertShell.Infrastructure;
 
@@ -15,10 +15,10 @@ public class ConvertioContent
         formContent.Add(new StringContent(metaData.FileId), "file_id");
         formContent.Add(new StringContent(metaData.SessionId), "session_id");
         formContent.Add(new StringContent(metaData.FileName), "user_fn");
-        formContent.Add(new StringContent(BytesToString(EncryptMd5(StringToBytes(metaData.FileName)))),
+        formContent.Add(new StringContent(metaData.FileName.StringToBytes().EncryptMd5().BytesToString()),
             "user_fn_hash");
         formContent.Add(new StringContent($"{metaData.FileData.Length}"), "file_size");
-        formContent.Add(new StringContent(BytesToString(EncryptMd5(metaData.FileData))), "file_hash");
+        formContent.Add(new StringContent(metaData.FileData.EncryptMd5().BytesToString()), "file_hash");
         formContent.Add(new StringContent(metaData.OutFileExtension), "file_out_format");
         formContent.Add(new StringContent(metaData.PackId), "pack_id");
         return formContent;
