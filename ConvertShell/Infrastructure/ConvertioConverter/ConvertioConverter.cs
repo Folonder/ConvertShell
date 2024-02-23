@@ -1,8 +1,5 @@
-﻿using System.Net;
-using System.Text.Json;
-using ConvertShell.Exceptions;
-using Microsoft.Extensions.Options;
-using static ConvertShell.Utils;
+﻿using Microsoft.Extensions.Options;
+
 
 namespace ConvertShell.Infrastructure;
 

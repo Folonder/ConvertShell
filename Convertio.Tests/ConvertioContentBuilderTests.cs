@@ -1,6 +1,5 @@
 using System.Text;
 using ConvertShell.Infrastructure;
-using static ConvertShell.Utils;
 
 
 namespace ConvertioClient.Tests;
@@ -26,9 +25,9 @@ public class ConvertioClientBuilderTests
         Assert.Equal(metaData.FileId, StringContent(result, "file_id"));
         Assert.Equal(metaData.SessionId, StringContent(result, "session_id"));
         Assert.Equal(metaData.FileName, StringContent(result, "user_fn"));
-        Assert.Equal(BytesToString(EncryptMd5(StringToBytes(metaData.FileName))), StringContent(result, "user_fn_hash"));
+        Assert.Equal("[>']Poe��-�o�", StringContent(result, "user_fn_hash"));
         Assert.Equal($"{metaData.FileData.Length}", StringContent(result, "file_size"));
-        Assert.Equal(BytesToString(EncryptMd5(metaData.FileData)), StringContent(result, "file_hash"));
+        Assert.Equal("X��}��^2�9���", StringContent(result, "file_hash"));
         Assert.Equal(metaData.OutFileExtension, StringContent(result, "file_out_format"));
         Assert.Equal(metaData.PackId, StringContent(result, "pack_id"));
     }

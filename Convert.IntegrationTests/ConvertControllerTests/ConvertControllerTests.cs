@@ -64,7 +64,7 @@ public class ConvertControllerTests : TestBase
         Assert.NotNull(result);
         Assert.Equal("OK", result.StatusCode.ToString());
         Assert.Equal("application/pdf", result.Content.Headers.ContentType?.MediaType);
-        Assert.Equal(FileName, result.Content.Headers.ContentDisposition?.FileName);
+        Assert.Equal("happy.pdf", result.Content.Headers.ContentDisposition?.FileName);
         Assert.Equal(await File.ReadAllBytesAsync(GetFilePath("happy.pdf")), await result.Content.ReadAsByteArrayAsync());
 
         #endregion
@@ -296,8 +296,7 @@ public class ConvertControllerTests : TestBase
         Assert.NotNull(result);
         Assert.Equal("OK", result.StatusCode.ToString());
         Assert.Equal("application/pdf", result.Content.Headers.ContentType?.MediaType);
-        Assert.Equal(FileName, result.Content.Headers.ContentDisposition?.FileName);
-
+        Assert.Equal("happy.pdf", result.Content.Headers.ContentDisposition?.FileName);
         Assert.Equal(await File.ReadAllBytesAsync(GetFilePath("happy.pdf")), await result.Content.ReadAsByteArrayAsync());
 
         #endregion 

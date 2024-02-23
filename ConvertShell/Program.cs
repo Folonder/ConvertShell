@@ -2,6 +2,8 @@ using ConvertShell.Infrastructure;
 using ConvertShell.Middleware;
 using ConvertShell.Services;
 
+namespace ConvertShell;
+
 public class Program
 {
     public static void Main(string[] args)
@@ -30,7 +32,6 @@ public class Program
         builder.Services.AddScoped<IConverter, ConvertioConverter>();
         builder.Services.Configure<ConvertioConverterOptions>(builder.Configuration.GetSection(ConvertioConverterOptions.Key));
 
-
         builder.Services.AddHttpClient();
         
 
@@ -49,7 +50,7 @@ public class Program
         app.UseMiddleware<ExceptionHandlerMiddleware>();
 
         app.UseCors();
-
+    
         app.UseHttpsRedirection();
 
         app.UseAuthorization();
@@ -59,4 +60,3 @@ public class Program
         app.Run();
     }
 }
-
