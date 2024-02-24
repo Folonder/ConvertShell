@@ -56,4 +56,4 @@ jobs:
           port: ${{ secrets.PORT }}
           script: |
             sudo docker pull cr.yandex/${{secrets.YANDEX_REGISTRY_ID}}/${{secrets.YANDEX_REPO_NAME}}:latest
-            sudo docker run cr.yandex/${{secrets.YANDEX_REGISTRY_ID}}/${{secrets.YANDEX_REPO_NAME}}:latest
+            sudo docker run -d cr.yandex/${{secrets.YANDEX_REGISTRY_ID}}/${{secrets.YANDEX_REPO_NAME}}:latest
