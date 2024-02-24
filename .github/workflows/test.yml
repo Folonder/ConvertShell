@@ -1,4 +1,4 @@
-name: ASP.NET Build and Test
+name: ASP.NET Build, Test, Deploy
 
 on:
   workflow_dispatch:
@@ -24,4 +24,36 @@ jobs:
 
       - name: Test
         run: dotnet test
-
+        
+      - name: Checkout
+        uses: actions/checkout@v2
+        
+      - name: Yandex Cloud login
+        uses: yc-actions/yc-cr-login@v1
+        with:
+          yc-sa-json-credentials: ${{ secrets.YC_SA_JSON_CREDENTIALS }}
+          
+      - name: Build, tag, and push image to Yandex Cloud Container Registry
+        env:
+          CR_REGISTRY: ${{secrets.YANDEX_REGISTRY_ID}}
+          CR_REPO: ${{secrets.YANDEX_REPO_NAME}}
+          IMAGE_TAG: latest
+          VM_ID: ${{secrets.VM_ID}}
+        run: |
+          docker build -t cr.yandex/$CR_REGISTRY/$CR_REPO:$IMAGE_TAG .
+          docker push cr.yandex/$CR_REGISTRY/$CR_REPO:$IMAGE_TAG
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to server via ssh
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.KEY }}
+          port: ${{ secrets.PORT }}
+          script: |
+            sudo docker pull cr.yandex/${{secrets.YANDEX_REGISTRY_ID}}/${{secrets.YANDEX_REPO_NAME}}:latest
+            sudo docker rm -f ${{secrets.PROJECT_NAME}}
+            sudo docker run cr.yandex/${{secrets.YANDEX_REGISTRY_ID}}/${{secrets.YANDEX_REPO_NAME}}:$latest
