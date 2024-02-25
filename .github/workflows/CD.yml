@@ -1,4 +1,4 @@
-name: ASP.NET Build, Test, Deploy
+name: CD
 
 on:
   workflow_dispatch:
