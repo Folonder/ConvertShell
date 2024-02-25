@@ -54,6 +54,13 @@ jobs:
           key: ${{ secrets.KEY }}
           passphrase: ${{ secrets.PASSPHRASE}}
           port: ${{ secrets.PORT }}
+          run: |
+            if [ "$(docker ps -q)" ]; then
+              sudo docker kill $(docker ps -q) &> /dev/null
+            fi
+            if [ "$(docker ps -a -q)" ]; then
+              sudo docker rm $(docker ps -a -q) &> /dev/null
+            fi
           script: |
             sudo docker pull cr.yandex/${{secrets.YANDEX_REGISTRY_ID}}/${{secrets.YANDEX_REPO_NAME}}:latest
             sudo docker run -d -p 80:80 cr.yandex/${{secrets.YANDEX_REGISTRY_ID}}/${{secrets.YANDEX_REPO_NAME}}:latest
